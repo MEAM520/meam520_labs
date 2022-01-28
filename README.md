@@ -141,14 +141,14 @@ GitHub is an example of a location which stores remote git repositories and acts
 
 To see that sure your local git repository is setup correctly type the following command:
 ```
-$ cd meam520_sim
+$ cd meam520_labs
 $ git reomte -v
 ```
 
 You should see:
 ```
-> origin  https://github.com/YOUR_USERNAME/meam520_sim.git (fetch)
-> origin  https://github.com/YOUR_USERNAME/meam520_sim.git (push)
+> origin  https://github.com/YOUR_USERNAME/meam520_labs.git (fetch)
+> origin  https://github.com/YOUR_USERNAME/meam520_labs.git (push)
 ```
 
 The *origin* is the primary remote location, and this is pointing to the repository you forked to your account.
@@ -165,8 +165,8 @@ $ git remote -v
 You should now see:
 
 ```
-> origin    https://github.com/YOUR_USERNAME/meam520_sim.git (fetch)
-> origin    https://github.com/YOUR_USERNAME/meam520_sim.git (push)
+> origin    https://github.com/YOUR_USERNAME/meam520_labs.git (fetch)
+> origin    https://github.com/YOUR_USERNAME/meam520_labs.git (push)
 > upstream  https://github.com/MEAM520/meam520_labs.git (fetch)
 > upstream  DISABLED (push)
 ```
