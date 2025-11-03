@@ -1,5 +1,5 @@
 # MEAM520: Introduction to Robotics
-### Date Modified: 10/22/2025
+### Date Modified: 11/03/2025
 
 Maintainers: Contact 2025 Fall semester TAs
 
