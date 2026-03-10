@@ -1,0 +1,190 @@
+# # Definitions of tags to detect
+#
+# ## General remarks
+#
+# - All length in meters
+# - 'size' refers to the length of the shared border between solid black and solid white rectangle.
+#   See README.md or https://github.com/AprilRobotics/apriltag/wiki/AprilTag-User-Guide#pose-estimation for details.
+# - Ellipsis (...) signifies that the previous element can be repeated multiple times.
+#
+# ## Standalone tag definitions
+# ### Remarks
+#
+# - name is optional
+#
+# ### Syntax
+#
+# standalone_tags:
+#   [
+#     {id: ID, size: SIZE, name: NAME},
+#     ...
+#   ]
+standalone_tags:
+  [
+    {id: 0, size: 0.03773},
+    {id: 1, size: 0.03773},
+    {id: 2, size: 0.03773},
+    {id: 3, size: 0.03773},
+    {id: 4, size: 0.03773},
+    {id: 5, size: 0.03773},
+    {id: 6, size: 0.03773},
+    {id: 7, size: 0.03773},
+    {id: 8, size: 0.03773},
+    {id: 9, size: 0.03773},
+    {id: 10, size: 0.03773},
+    {id: 11, size: 0.03773},
+    {id: 12, size: 0.03773},
+    {id: 13, size: 0.03773},
+    {id: 14, size: 0.03773},
+    {id: 15, size: 0.03773},
+    {id: 16, size: 0.03773},
+    {id: 17, size: 0.03773},
+    {id: 18, size: 0.03773},
+    {id: 19, size: 0.03773},
+    {id: 20, size: 0.03773},
+    {id: 21, size: 0.03773},
+    {id: 22, size: 0.03773},
+    {id: 23, size: 0.03773},
+    {id: 24, size: 0.03773},
+    {id: 25, size: 0.03773},
+    {id: 26, size: 0.03773},
+    {id: 27, size: 0.03773},
+    {id: 28, size: 0.03773},
+    {id: 29, size: 0.03773},
+    {id: 30, size: 0.03773},
+    {id: 31, size: 0.03773},
+    {id: 32, size: 0.03773},
+    {id: 33, size: 0.03773},
+    {id: 34, size: 0.03773},
+    {id: 35, size: 0.03773},
+    {id: 36, size: 0.03773},
+    {id: 37, size: 0.03773},
+    {id: 38, size: 0.03773},
+    {id: 39, size: 0.03773},
+    {id: 40, size: 0.03773},
+    {id: 41, size: 0.03773},
+    {id: 42, size: 0.03773},
+    {id: 43, size: 0.03773},
+    {id: 44, size: 0.03773},
+    {id: 45, size: 0.03773},
+    {id: 46, size: 0.03773},
+    {id: 47, size: 0.03773},
+    {id: 48, size: 0.03773},
+    {id: 49, size: 0.03773},
+    {id: 50, size: 0.03773},
+    {id: 51, size: 0.03773},
+    {id: 52, size: 0.03773},
+    {id: 53, size: 0.03773},
+    {id: 54, size: 0.03773},
+    {id: 55, size: 0.03773},
+    {id: 56, size: 0.03773},
+    {id: 57, size: 0.03773},
+    {id: 58, size: 0.03773},
+    {id: 59, size: 0.03773},
+    {id: 60, size: 0.03773},
+    {id: 61, size: 0.03773},
+    {id: 62, size: 0.03773},
+    {id: 63, size: 0.03773},
+    {id: 64, size: 0.03773},
+    {id: 65, size: 0.03773},
+    {id: 66, size: 0.03773},
+    {id: 67, size: 0.03773},
+    {id: 68, size: 0.03773},
+    {id: 69, size: 0.03773},
+    {id: 70, size: 0.03773},
+    {id: 71, size: 0.03773},
+    {id: 72, size: 0.03773},
+    {id: 73, size: 0.03773},
+    {id: 74, size: 0.03773},
+    {id: 75, size: 0.03773},
+    {id: 76, size: 0.03773},
+    {id: 77, size: 0.03773},
+    {id: 78, size: 0.03773},
+    {id: 79, size: 0.03773},
+    {id: 80, size: 0.03773},
+    {id: 81, size: 0.03773},
+    {id: 82, size: 0.03773},
+    {id: 83, size: 0.03773},
+    {id: 84, size: 0.03773},
+    {id: 85, size: 0.03773},
+    {id: 86, size: 0.03773},
+    {id: 87, size: 0.03773},
+    {id: 88, size: 0.03773},
+    {id: 89, size: 0.03773},
+    {id: 90, size: 0.03773},
+    {id: 91, size: 0.03773},
+    {id: 92, size: 0.03773},
+    {id: 93, size: 0.03773},
+    {id: 94, size: 0.03773},
+    {id: 95, size: 0.03773},
+    {id: 96, size: 0.03773},
+    {id: 97, size: 0.03773},
+    {id: 98, size: 0.03773},
+    {id: 99, size: 0.03773},
+    {id: 100, size: 0.03773}, 
+    {id: 101, size: 0.03773}, 
+    {id: 102, size: 0.03773}, 
+    {id: 103, size: 0.03773}, 
+    {id: 104, size: 0.03773}, 
+    {id: 105, size: 0.03773}, 
+    {id: 106, size: 0.03773}, 
+    {id: 107, size: 0.03773}, 
+    {id: 108, size: 0.03773}, 
+    {id: 109, size: 0.03773}, 
+    {id: 110, size: 0.03773}, 
+    {id: 111, size: 0.03773}, 
+    {id: 112, size: 0.03773}, 
+    {id: 113, size: 0.03773}, 
+    {id: 114, size: 0.03773}, 
+    {id: 115, size: 0.03773}, 
+    {id: 116, size: 0.03773}, 
+    {id: 117, size: 0.03773}, 
+    {id: 118, size: 0.03773}, 
+    {id: 119, size: 0.03773}, 
+    {id: 120, size: 0.03773},
+    {id: 300, size: 0.03773}, 
+    {id: 301, size: 0.03773}, 
+    {id: 302, size: 0.03773}, 
+    {id: 303, size: 0.03773}, 
+    {id: 304, size: 0.03773}, 
+    {id: 305, size: 0.03773}, 
+    {id: 306, size: 0.03773}, 
+    {id: 307, size: 0.03773}, 
+    {id: 308, size: 0.03773}, 
+    {id: 309, size: 0.03773}, 
+    {id: 310, size: 0.03773}, 
+    {id: 311, size: 0.03773}, 
+    {id: 312, size: 0.03773}, 
+    {id: 313, size: 0.03773}, 
+    {id: 314, size: 0.03773}, 
+    {id: 315, size: 0.03773}, 
+    {id: 316, size: 0.03773}, 
+    {id: 317, size: 0.03773}, 
+    {id: 318, size: 0.03773}, 
+    {id: 319, size: 0.03773}, 
+    {id: 320, size: 0.03773} 
+  ]
+# ## Tag bundle definitions
+# ### Remarks
+#
+# - name is optional
+# - x, y, z have default values of 0 thus they are optional
+# - qw has default value of 1 and qx, qy, qz have default values of 0 thus they are optional
+#
+# ### Syntax
+#
+# tag_bundles:
+#   [
+#     {
+#       name: 'CUSTOM_BUNDLE_NAME',
+#       layout:
+#         [
+#           {id: ID, size: SIZE, x: X_POS, y: Y_POS, z: Z_POS, qw: QUAT_W_VAL, qx: QUAT_X_VAL, qy: QUAT_Y_VAL, qz: QUAT_Z_VAL},
+#           ...
+#         ]
+#     },
+#     ...
+#   ]
+tag_bundles:
+  [
+  ]
