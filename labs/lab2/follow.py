@@ -86,7 +86,7 @@ class JacobianDemo:
     ## TRAJECTORIES ##
     ##################
 
-    def line(t, f=1.0, L=0.35):
+    def line(t, f=0.5, L=0.35):
         """
         Calculate the position and velocity of the line trajector
 
