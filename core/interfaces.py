@@ -279,12 +279,13 @@ class ArmController(franka_interface.ArmInterface):
 	##                         ##
 	#############################
 
-	def __init__(self, on_state_callback=None):
+	def __init__(self, on_state_callback=None, id=None):
 		"""
 			Constructor class.  Functions from `franka_interface.ArmInterface <https://justagist.github.io/franka_ros_interface/DOC.html#arminterface>`_
 
 			:param on_state_callback: optional callback function to run on each state update
 		"""
+		self._id = id
 
 		self._logger = logging.getLogger(__name__)
 
@@ -292,7 +293,7 @@ class ArmController(franka_interface.ArmInterface):
 		self._arm_configured = False
 
 		# Parent constructor
-		franka_interface.ArmInterface.__init__(self)
+		franka_interface.ArmInterface.__init__(self, id=self._id)
 
 		self._jnt_limits = [{'lower': self.get_joint_limits().position_lower[i],
 							 'upper': self.get_joint_limits().position_upper[i]}
@@ -313,7 +314,7 @@ class ArmController(franka_interface.ArmInterface):
 			[0.5 * (limit['lower'] + limit['upper']) for limit in self._jnt_limits])
 
 		self._franka_robot_enable_interface = franka_interface.RobotEnable(
-			self._params)
+			self._params, id=self._id)
 
 		if not self._franka_robot_enable_interface.is_enabled():
 			self._franka_robot_enable_interface.enable()
@@ -341,7 +342,7 @@ class ArmController(franka_interface.ArmInterface):
 
 	def _configure_gripper(self, gripper_joint_names):
 		self._gripper = franka_interface.GripperInterface(
-			ns=self._ns, gripper_joint_names=gripper_joint_names)
+			ns=self._ns, gripper_joint_names=gripper_joint_names, id=self._id)
 		if not self._gripper.exists:
 			self._gripper = None
 			return

@@ -1,57 +1,264 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="utf-8"?>
 <launch>
-
-  <arg name="team" />
+  <!-- ========================================================
+       ARGUMENTS
+  ======================================================== -->
   <arg name="block_delay" default="5" />
-  <arg name="rviz" default="true" />
+  <arg name="rviz"       default="true" />
   <arg name="rvizconfig" default="$(find meam520_labs)/config/final.rviz" />
 
-  <arg name="y" value="-.99" if="$(eval arg('team') == 'red')"/>
-  <arg name="y" value=".99" if="$(eval arg('team') == 'blue')"/>
+  <!-- PandaPositionController uses a hardcoded absolute param path:
+       n.getParam("/robot_config/joint_names", ...) in the C++ source.
+       It always reads from the ROS master root regardless of controller namespace.
+       Load joint_names at the root so both franka1 and franka2 controllers find it. -->
+  <rosparam param="/robot_config/joint_names">
+    - panda_joint1
+    - panda_joint2
+    - panda_joint3
+    - panda_joint4
+    - panda_joint5
+    - panda_joint6
+    - panda_joint7
+  </rosparam>
 
-  <param name="team" value="$(arg team)" />
-
-  <!-- BASIC ENVIRONMENT -->
+  <!-- ========================================================
+       BASIC ENVIRONMENT
+  ======================================================== -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find meam520_labs)/worlds/final.world"/>
-    <arg name="paused" value="false" />
+    <arg name="paused"     value="false" />
   </include>
 
-  <!-- MOVING TURNTABLE -->
-  <include file="$(find meam520_labs)/launch/turntable.launch" ns="turntable" />
+  <!-- ========================================================
+       MOVING TURNTABLE
+       (wrapped in group because ROS1 roslaunch ignores ns= on include)
+  ======================================================== -->
+  <group ns="turntable">
+    <include file="$(find meam520_labs)/launch/turntable.launch" />
+  </group>
 
-  <!-- SCORABLE OBJECTS -->
+  <!-- ========================================================
+       ROBOT 1 - franka1
+  ======================================================== -->
+  <group ns="franka1">
+
+    <!-- robot_details.yaml contains only plain params (joint limits, neutral pose etc.)
+         - no gazebo plugin stanza. Load at robot root so /franka1/robot_config/... is correct.
+         Override arm_id since the YAML defaults to 'panda'. -->
+    <rosparam command="load" file="$(find panda_gazebo)/config/robot_details.yaml" />
+    <param name="robot_config/arm_id" value="franka1" />
+    <param name="robot_ip"            value="sim" />
+    <param name="controllers_config/trajectory_controller"
+      value="franka_ros_interface/position_joint_trajectory_controller" />
+
+    <!-- Controller type definitions. panda_sim_controllers.yaml has a top-level
+         'panda_simulator:' key, so loading at robot root puts controller types at
+         /franka1/panda_simulator/<controller>/type - exactly where controller_manager looks. -->
+    <rosparam command="load"
+      file="$(find panda_sim_controllers)/config/panda_sim_controllers.yaml" />
+
+    <!-- Gripper controller config scoped into panda_simulator namespace
+         (matches how panda_sim_controllers.launch loads it with ns="panda_simulator") -->
+    <rosparam command="load" ns="panda_simulator"
+      file="$(find panda_sim_controllers)/config/panda_gripper_controller.yaml" />
+    <!-- Override hardcoded absolute pub_topic so gripper states publish to namespaced topic -->
+    <param name="panda_simulator/panda_gripper_controller/pub_topic"
+      value="/franka1/franka_gripper/joint_states" />
+
+    <param name="robot_description"
+      command="$(find xacro)/xacro $(find meam520_labs)/urdf/franka_panda.xacro arm_id:=franka1" />
+
+    <param name="arm/root_name"           value="panda_link0" />
+    <param name="arm/tip_name"            value="panda_hand" />
+    <param name="franka_gripper/robot_ip" value="sim" />
+    <param name="arm/gravity_tip_name"   value="panda_hand" />
+
+    <node name="franka1_model_spawner" pkg="gazebo_ros" type="spawn_model"
+      args="-param /franka1/robot_description -urdf -model franka1
+            -J panda_joint1 0.000
+            -J panda_joint2 -0.785
+            -J panda_joint3 0.0
+            -J panda_joint4 -2.356
+            -J panda_joint5 0.0
+            -J panda_joint6 1.57
+            -J panda_joint7 0.785
+            -x 0 -y -0.99 -z 0 -R 0 -P 0 -Y 0" />
+
+    <node pkg="tf" type="static_transform_publisher" name="franka1_base_to_link0"
+      args="0 0 0 0 0 0 1 franka1/base franka1/panda_link0 100" />
+    <node pkg="tf" type="static_transform_publisher" name="franka1_world_to_base"
+      args="0 0 0 0 0 0 1 world franka1/base 100" />
+
+    <!-- Override hardcoded absolute topic so each robot uses its own command topic -->
+    <param name="panda_simulator/position_joint_position_controller/topic_joint_command"
+      value="/franka1/panda_simulator/motion_controller/arm/joint_commands" />
+    <param name="panda_simulator/velocity_joint_velocity_controller/topic"
+      value="/franka1/panda_simulator/motion_controller/arm/joint_commands" />
+    <param name="panda_simulator/effort_joint_torque_controller/topic"
+      value="/franka1/panda_simulator/motion_controller/arm/joint_commands" />
+    <!-- Only position_joint_position_controller is a "motion controller".
+         joint_state and gripper are whitelisted as non-motion in FrankaControllerManagerInterface. -->
+    <node name="controller_spawner" pkg="controller_manager" type="spawner"
+      respawn="false" output="screen"
+      args="--namespace=/franka1
+            panda_simulator/position_joint_position_controller
+            panda_simulator/joint_state_controller
+            panda_simulator/panda_gripper_controller" />
+
+    <!-- Controllers OFF: loaded but not started -->
+    <node name="controller_spawner_stopped" pkg="controller_manager" type="spawner"
+      respawn="false" output="screen"
+      args="--namespace=/franka1 --stopped
+            panda_simulator/velocity_joint_velocity_controller
+            panda_simulator/effort_joint_gravity_controller
+            panda_simulator/effort_joint_torque_controller" />
+
+    <!-- robot_state_publisher for this robot -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher"
+      type="robot_state_publisher" respawn="false" output="screen" />
+
+    <!-- arm.py subscribes to /franka1/franka_ros_interface/custom_franka_state_controller/*
+         but arm_kinematics_interface (C++ plugin) publishes to /franka1/panda_simulator/...
+         Relay all three state topics to the paths arm.py expects. -->
+    <node name="relay_joint_states" pkg="topic_tools" type="relay"
+      args="joint_states franka_ros_interface/custom_franka_state_controller/joint_states" />
+    <node name="relay_tip_state" pkg="topic_tools" type="relay"
+      args="panda_simulator/custom_franka_state_controller/tip_state franka_ros_interface/custom_franka_state_controller/tip_state" />
+    <node name="relay_robot_state" pkg="topic_tools" type="relay"
+      args="panda_simulator/custom_franka_state_controller/robot_state franka_ros_interface/custom_franka_state_controller/robot_state" />
+    <!-- Relay double-prefixed gripper joint_states to single-prefixed path GripperInterface expects -->
+    <node name="relay_gripper_joint_states" pkg="topic_tools" type="relay"
+      args="/franka_gripper/joint_states franka_gripper/joint_states" />
+    <!-- Relay motion commands from franka_ros_interface to panda_simulator namespace -->
+    <node name="relay_joint_commands" pkg="topic_tools" type="relay"
+      args="franka_ros_interface/motion_controller/arm/joint_commands panda_simulator/motion_controller/arm/joint_commands" />
+
+    <!-- Action server inside franka_ros_interface group so topics resolve
+         under /franka1/franka_ros_interface/ -->
+    <group ns="franka_ros_interface">
+      <node pkg="panda_sim_custom_action_server" type="start_joint_trajectory_server.py"
+        name="joint_trajectory_server_emulator" output="screen"
+        launch-prefix="bash -c 'sleep 10; $0 $@' " />
+    </group>
+
+    <node pkg="panda_sim_custom_action_server" type="start_gripper_action_server.py"
+      name="gripper_action_server_emulator" />
+
+    <node pkg="panda_gazebo" type="force_neutral_pose.py" name="startup_script" />
+  </group>
+
+  <!-- ========================================================
+       ROBOT 2 - franka2
+  ======================================================== -->
+  <group ns="franka2">
+
+    <rosparam command="load" file="$(find panda_gazebo)/config/robot_details.yaml" />
+    <param name="robot_config/arm_id" value="franka2" />
+    <param name="robot_ip"            value="sim" />
+    <param name="controllers_config/trajectory_controller"
+      value="franka_ros_interface/position_joint_trajectory_controller" />
+
+    <rosparam command="load"
+      file="$(find panda_sim_controllers)/config/panda_sim_controllers.yaml" />
+
+    <rosparam command="load" ns="panda_simulator"
+      file="$(find panda_sim_controllers)/config/panda_gripper_controller.yaml" />
+    <!-- Override hardcoded absolute pub_topic so gripper states publish to namespaced topic -->
+    <param name="panda_simulator/panda_gripper_controller/pub_topic"
+      value="/franka2/franka_gripper/joint_states" />
+
+    <param name="robot_description"
+      command="$(find xacro)/xacro $(find meam520_labs)/urdf/franka_panda.xacro arm_id:=franka2" />
+
+    <param name="arm/root_name"           value="panda_link0" />
+    <param name="arm/tip_name"            value="panda_hand" />
+    <param name="franka_gripper/robot_ip" value="sim" />
+    <param name="arm/gravity_tip_name"   value="panda_hand" />
+
+    <node name="franka2_model_spawner" pkg="gazebo_ros" type="spawn_model"
+      args="-param /franka2/robot_description -urdf -model franka2
+            -J panda_joint1 0.000
+            -J panda_joint2 -0.785
+            -J panda_joint3 0.0
+            -J panda_joint4 -2.356
+            -J panda_joint5 0.0
+            -J panda_joint6 1.57
+            -J panda_joint7 0.785
+            -x 0 -y 0.99 -z 0 -R 0 -P 0 -Y 0" />
+
+    <node pkg="tf" type="static_transform_publisher" name="franka2_base_to_link0"
+      args="0 0 0 0 0 0 1 franka2/base franka2/panda_link0 100" />
+    <node pkg="tf" type="static_transform_publisher" name="franka2_world_to_base"
+      args="0 0 0 0 0 0 1 world franka2/base 100" />
+
+    <!-- Override hardcoded absolute topic so each robot uses its own command topic -->
+    <param name="panda_simulator/position_joint_position_controller/topic_joint_command"
+      value="/franka2/panda_simulator/motion_controller/arm/joint_commands" />
+    <param name="panda_simulator/velocity_joint_velocity_controller/topic"
+      value="/franka2/panda_simulator/motion_controller/arm/joint_commands" />
+    <param name="panda_simulator/effort_joint_torque_controller/topic"
+      value="/franka2/panda_simulator/motion_controller/arm/joint_commands" />
+    <node name="controller_spawner" pkg="controller_manager" type="spawner"
+      respawn="false" output="screen"
+      args="--namespace=/franka2
+            panda_simulator/position_joint_position_controller
+            panda_simulator/joint_state_controller
+            panda_simulator/panda_gripper_controller" />
+
+    <node name="controller_spawner_stopped" pkg="controller_manager" type="spawner"
+      respawn="false" output="screen"
+      args="--namespace=/franka2 --stopped
+            panda_simulator/velocity_joint_velocity_controller
+            panda_simulator/effort_joint_gravity_controller
+            panda_simulator/effort_joint_torque_controller" />
+
+    <node name="robot_state_publisher" pkg="robot_state_publisher"
+      type="robot_state_publisher" respawn="false" output="screen" />
+
+    <!-- Relay state topics from panda_simulator namespace to franka_ros_interface namespace -->
+    <node name="relay_joint_states" pkg="topic_tools" type="relay"
+      args="joint_states franka_ros_interface/custom_franka_state_controller/joint_states" />
+    <node name="relay_tip_state" pkg="topic_tools" type="relay"
+      args="panda_simulator/custom_franka_state_controller/tip_state franka_ros_interface/custom_franka_state_controller/tip_state" />
+    <node name="relay_robot_state" pkg="topic_tools" type="relay"
+      args="panda_simulator/custom_franka_state_controller/robot_state franka_ros_interface/custom_franka_state_controller/robot_state" />
+    <!-- panda_gripper_controller publishes to franka2/franka_gripper/joint_states (double-prefixed)
+         GripperInterface subscribes to /franka2/franka_gripper/joint_states (single-prefixed) -->
+    <node name="relay_gripper_joint_states" pkg="topic_tools" type="relay"
+      args="/franka_gripper/joint_states franka_gripper/joint_states" />
+    <!-- Relay motion commands from franka_ros_interface to panda_simulator namespace -->
+    <node name="relay_joint_commands" pkg="topic_tools" type="relay"
+      args="franka_ros_interface/motion_controller/arm/joint_commands panda_simulator/motion_controller/arm/joint_commands" />
+
+    <group ns="franka_ros_interface">
+      <node pkg="panda_sim_custom_action_server" type="start_joint_trajectory_server.py"
+        name="joint_trajectory_server_emulator" output="screen"
+        launch-prefix="bash -c 'sleep 10; $0 $@' " />
+    </group>
+
+    <node pkg="panda_sim_custom_action_server" type="start_gripper_action_server.py"
+      name="gripper_action_server_emulator" />
+
+    <node pkg="panda_gazebo" type="force_neutral_pose.py" name="startup_script" />
+  </group>
+
+  <!-- ========================================================
+       END-EFFECTOR TF FRAMES
+  ======================================================== -->
+  <node pkg="tf" type="static_transform_publisher" name="ee_franka1"
+    args="0 0 .103 0 0 0 1 /franka1/panda_hand /franka1/endeffector 1"/>
+  <node pkg="tf" type="static_transform_publisher" name="ee_franka2"
+    args="0 0 .103 0 0 0 1 /franka2/panda_hand /franka2/endeffector 1"/>
+
+  <!-- ========================================================
+       RVIZ
+  ======================================================== -->
+  <group if="$(arg rviz)">
+    <node name="rviz" pkg="rviz" type="rviz"
+      args="-d $(arg rvizconfig)" required="true" />
+  </group>
+
   <node pkg="meam520_labs" name="block_spawner" type="block_spawner.py" output="screen"
     launch-prefix="bash -c 'sleep $(arg block_delay); $0 $@' "/>/>
-
-    <include file="$(find meam520_labs)/launch/single.launch">
-      <arg name="load_gazebo" value="false" />
-      <arg name="x" value="0"/>
-      <arg name="y" value="$(arg y)" />
-      <!-- <arg name="y" value="-.978" if="$(eval arg('team') == 'red')"/>
-      <arg name="y" value=".978" if="$(eval arg('team') == 'blue')"/> -->
-      <arg name="z" value="0"/>
-      <arg name="roll" value="0"/>
-      <arg name="pitch" value="0"/>
-      <arg name="yaw" value="0"/>
-    </include>
-
-    <!-- CAMERA AND CALIBRATION TAG FRAMES -->
-    <node pkg="tf" type="static_transform_publisher" name="ee"
-      args="0 0 .103 0 0 0 1  /panda_hand /endeffector  1"/>
-
-    <!-- <node pkg="tf" type="static_transform_publisher" name="camera_transform"
-      args="0 0 2 0 3.14 0  /base /camera  1"/>
-
-    <node pkg="tf" type="static_transform_publisher" name="tag_transform"
-      args="-.5 0 0 0 0 0  /base /calibration_tag  1"/>
-
-    <node pkg="tf" type="static_transform_publisher" name="world_transform"
-      args="0 $(arg y) 0 0 0 0  /world_frame /world  1"/> -->
-
-
-    <group if="$(arg rviz)">
-      <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
-     </group>
 
 </launch>

@@ -5,6 +5,7 @@
 <!-- =================================================================================== -->
 <robot name="panda" xmlns:xacro="http://www.ros.org/wiki/xacro">
   <!-- If using a different frame with ${connected_to} param, make sure 'world' frame exists in the TF tree -->
+  <xacro:arg name="arm_id" default="panda"/>
   <xacro:property name="M_PI" value="3.1415926535897931" />
   <joint name="panda_hand_joint" type="fixed">
     <parent link="panda_link8"/>
@@ -570,7 +571,7 @@
   </gazebo>
   <gazebo>
     <plugin filename="libpanda_gazebo_ros_control.so" name="panda_ros_control">
-      <robotNamespace/>
+      <robotNamespace>$(arg arm_id)</robotNamespace>
       <robotSimType>panda_gazebo/PandaRobotHWSim</robotSimType>
       <controlPeriod>0.001</controlPeriod>
       <eStopTopic>sim_estop</eStopTopic>
