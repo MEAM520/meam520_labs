@@ -26,6 +26,14 @@ For some different versions of the host machines, you might need to check and ch
 
 Shut down the VM completely (not just suspend), then in VMware, go to the Virtual Machine Library, right-click on MEAM520F22, and choose Settings. Under Network Adapter, make sure the connection is set to "Share with my Mac" or "NAT" if you are using Windows or Ubuntu 22.04 or newer. Relaunch the VM, then go to the top menu bar, select Virtual Machine - Network Adapter, and confirm that NAT is selected.
 
+If you are encountering loss of network connection after the VM wakes from sleep, you can try to reset your network manager using the following:
+sudo service network-manager stop
+sudo rm /var/lib/NetworkManager/NetworkManager.state
+sudo service network-manager start
+
+You can also disable sleep functionality altogether, using:
+sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
+
 
 ### Error with optimizing VMWare Player 17.0
 
