@@ -10,7 +10,7 @@ Any figures or graphics included in your report should be introduced (mentioned)
 - `\begin{figure}[!h]` ("override, here") -- override layout rules to place the figure here
 - You can combine these options (ex. `[!ht]` "override, here or top of page").
 
-It is common for people to scan a paper and look at the figures before reading the paper itself in depth. Because of this, we want to make figures somewhat standalone, that is, the audience can understand the message and point of the figure just by looking at it and reading the caption. This leads to a few guidelines:
+It is common for people to scan a paper and look at the figures before reading the paper itself in depth. Because of this, **we want to make figures standalone**, that is, the audience can understand the message and point of the figure just by looking at it and reading the caption. This leads to a few guidelines:
 1. Make sure that all plots or graphs have axes and titles clearly labeled, in an easy-to-read font and font size, with any necessary legends (making sure they don't obscure the data).
 2. Photos / images should be well-exposed and easy to understand: but default to diagrams if describing a setup or concept, as they are easier to read.
 3. Diagrams should be labeled clearly with arrows if necessary.
