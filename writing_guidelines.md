@@ -24,7 +24,7 @@ It is common for people to scan a paper and look at the figures before reading t
 3. Diagrams should be labeled clearly with arrows if necessary.
 4. Captions should say more than "Experiment" -- they should describe the figure, and call attention to the main takeaway.
    - Bad caption: "C-space graph"
-   - Good caption: "Configuration space visualization of the 2-link robot. Empirically-derived collisions with the table are shown in red, with estimated uncertainty of _____."
+   - Good caption: "Configuration space visualization of the 2-link robot. Empirically-derived collision regions with the table are shown in red, with estimated uncertainty of _____."
 
 Some formatting rules of thumb:
 - Figure captions are placed immediately _below_ the figure they refer to.
