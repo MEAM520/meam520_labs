@@ -12,6 +12,7 @@ from core.utils import time_in_seconds
 
 from lib.IK_velocity import IK_velocity
 from lib.calculateFK import FK
+from lib.calcAngDiff import calcAngDiff
 
 ######################
 ## Rotation Helpers ##
@@ -30,31 +31,7 @@ def rotvec_to_matrix(rotvec):
     return R
 
 
-def calcAngDiff(R_des, R_curr):
-    """
-    Helper function for the End Effector Orientation Task. Computes the axis of rotation
-    from the current orientation to the target orientation
-
-    This data can also be interpreted as an end effector velocity which will
-    bring the end effector closer to the target orientation.
-
-    INPUTS:
-    R_des - 3x3 numpy array representing the desired orientation from
-    end effector to world
-    R_curr - 3x3 numpy array representing the "current" end effector orientation
-
-    OUTPUTS:
-    omega - 1x3 a 3-element numpy array containing the axis of the rotation from
-    the current frame to the end effector frame. The magnitude of this vector
-    must be sin(angle), where angle is the angle of rotation around this axis
-    """
-    omega = np.zeros(3)
-    Rrel = R_curr.T @ R_des
-    skew = 1 / 2 * (Rrel - Rrel.T)
-    u = np.array([skew[2, 1], skew[0, 2], skew[1, 0]])
-    omega = R_curr @ u
-
-    return omega
+## NOTE: calcAngDiff() MOVED TO calcAngDiff.py
 
 
 ##################
@@ -119,7 +96,7 @@ class JacobianDemo:
 
     def eight(t, fx=0.5, fy=1.0, rx=0.15, ry=0.1):
         """
-        Calculate the position and velocity of the figure 8 trajector
+        Calculate the position and velocity of the figure 8 trajectory
 
         Inputs:
         t - time in sec since start
@@ -139,6 +116,25 @@ class JacobianDemo:
 
         ## END STUDENT CODE
         return Rdes, ang_vdes, xdes, vdes
+
+    def ellipse(t, f=1, ry=.15, rz=.15):
+        """
+        Calculate the position and velocity of the ellipse trajectory, in the world y and z
+
+        Inputs:
+        t - time in sec since start
+        f - frequency in rad/s of the ellipse
+        ry - y-axis length
+        rz - z-axis length
+
+        Outputs:
+        xdes = 0x3 np array of target end effector position in the world frame
+        vdes = 0x3 np array of target end effector linear velocity in the world frame
+        """
+        # TODO: Implement ellipse trajectory
+
+        ## END STUDENT CODE
+        return xdes, vdes
 
     ###################
     ## VISUALIZATION ##
