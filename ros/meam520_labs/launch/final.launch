@@ -22,7 +22,7 @@
 
   <!-- SCORABLE OBJECTS -->
   <node pkg="meam520_labs" name="block_spawner" type="block_spawner.py" output="screen"
-    launch-prefix="bash -c 'sleep $(arg block_delay); $0 $@' "/>/>
+    launch-prefix="bash -c 'sleep $(arg block_delay); $0 $@' "/>
 
     <include file="$(find meam520_labs)/launch/single.launch">
       <arg name="load_gazebo" value="false" />
