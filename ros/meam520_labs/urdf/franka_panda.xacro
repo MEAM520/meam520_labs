@@ -541,6 +541,20 @@
         <frameName>panda_link7</frameName>
       </plugin>
     </sensor>
+    <sensor name="panda_hand_contact" type="contact">
+      <always_on>true</always_on>
+      <update_rate>100</update_rate>
+
+      <contact>
+        <collision>panda_link7_fixed_joint_lump__panda_hand_collision_2</collision>
+      </contact>
+
+      <plugin filename="libgazebo_ros_bumper.so"
+              name="panda_hand_bumper">
+        <bumperTopicName>panda_hand_collision</bumperTopicName>
+        <frameName>panda_link7</frameName>
+      </plugin>
+    </sensor>
   </gazebo>
   <gazebo reference="panda_leftfinger">
     <sensor name="panda_leftfinger_contact" type="contact">

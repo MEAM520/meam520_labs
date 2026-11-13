@@ -117,7 +117,7 @@ class ObjectDetector:
 			self.model.fromCameraInfo(info)
 			self.frame_height = info.height
 			self.frame_width = info.width
-			self.got_info = True
+			self.got_camera_info = True
 
 	def image_callback(self, image):
 		self.image = deepcopy(image)
@@ -132,7 +132,7 @@ class ObjectDetector:
 
 			blocks = []
 			for (name,pose) in zip(msg.name,msg.pose):
-				if 'cube' in name: 					
+				if 'cube' in name or 'rect' in name: 					
 					H_world_block = self.pose_to_transform(pose)
 					H_base_block = H_world_block.copy()
 					if self.team == 'red':
@@ -152,40 +152,50 @@ class ObjectDetector:
 		except Exception as e:
 			pass
 
-	def check_block_visibility(self,block):
-		if self.got_info:
-			block_position = block[1][:3,3]
 
-			## check if the block is behind the camera
-			if block_position[2] < 0.:
-				return False
 
-			roll, pitch, yaw = R.from_matrix(block[1][:3, :3]).as_euler('xyz')
-			block_side1 = [block_position[0] + self.block_size/2 * cos(yaw), block_position[1] + self.block_size/2 * sin(yaw), block_position[2]]
-			block_side2 = [block_position[0] + self.block_size/2 * cos(yaw+pi/2), block_position[1] + self.block_size/2 * sin(yaw+pi/2), block_position[2]]
-			block_side3 = [block_position[0] + self.block_size/2 * cos(yaw+pi), block_position[1] + self.block_size/2 * sin(yaw+pi), block_position[2]]
-			block_side4 = [block_position[0] + self.block_size/2 * cos(yaw+3*pi/2), block_position[1] + self.block_size/2 * sin(yaw+3*pi/2), block_position[2]]
-			u1, v1 = self.model.project3dToPixel(block_side1)
-			if u1 < 0 or v1 < 0 or u1 > self.frame_width or v1 > self.frame_height :
-				return False
-			
-			u2, v2 = self.model.project3dToPixel(block_side2)
-			if u2 < 0 or v2 < 0 or u2 > self.frame_width or v2 > self.frame_height:
-				return False
-			
-			
-			u3, v3 = self.model.project3dToPixel(block_side3)
-			if u3 < 0 or v3 < 0 or u3 > self.frame_width or v3 > self.frame_height:
-				return False
-			
-			
-			u4, v4 = self.model.project3dToPixel(block_side4)
-			if u4 < 0 or v4 < 0 or u4 > self.frame_width or v4 > self.frame_height:
-				return False
-			
-			return True
-		else:
+	def check_block_visibility(self, block):
+		if not self.got_camera_info:
 			return False
+
+		name, H_camera_block = block
+
+		# Block dimensions in meters (local X, Y, Z)
+		if name.startswith('rect'):
+			sx, sy, sz = 0.10, 0.05, 0.05
+		else:
+			sx, sy, sz = 0.05, 0.05, 0.05
+
+		# Generate all 8 corners in the block's local frame
+		corners = np.array([
+			[x, y, z, 1.0]
+			for x in [-sx / 2, sx / 2]
+			for y in [-sy / 2, sy / 2]
+			for z in [-sz / 2, sz / 2]
+		])
+
+		# Transform corners into camera coordinates
+		corners_camera = (H_camera_block @ corners.T).T
+
+		# Count corners that are inside the camera frame
+		visible_corners = 0
+
+		for corner in corners_camera:
+			# Ignore corners behind the camera
+			if corner[2] <= 0:
+				continue
+
+			# Project 3D corner onto the 2D image
+			u, v = self.model.project3dToPixel(corner[:3])
+
+			if (0 <= u < self.frame_width and
+				0 <= v < self.frame_height):
+				visible_corners += 1
+
+		# Accept blocks with at least 6 of 8 corners visible
+		return visible_corners >= 6
+
+
 
 	def pose_to_transform(self,pose):
 		T = quaternion_matrix([
@@ -699,6 +709,26 @@ class ArmController(franka_interface.ArmInterface):
 			self.move_to_position(joint_angles, timeout, threshold, test, is_safe=True)
 		else:
 			print("Robot will hit the table!!! Aborting the current configuration.")
+			
+	def safe_move_to_touch(self, joint_angles, timeout=10.0, threshold=0.00085):
+		"""
+		(Blocking) Commands the limb to the provided positions.
+
+		Waits until the reported joint state matches that specified.
+
+		This function uses a low-pass filter to smooth the movement.
+
+		:type joint_angles: [float]
+		:param joint_angles: desired joint angles, ordered from joint1 to joint7
+		:type timeout: float
+		:param timeout: seconds to wait for move to finish
+		:type threshold: float
+		:param threshold: position threshold in radians across each joint when
+		move is considered successful
+		:return result: True if motion ended in collision. False if achieved configuration
+		:rtype: bool
+		"""
+		return self.move_to_touch(self._format_command_with_limits(joint_angles), timeout=timeout, threshold=threshold)
 
 	def safe_set_joint_positions_velocities(self, positions, velocities):
 		# The safety layer
