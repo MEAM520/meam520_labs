@@ -14,9 +14,9 @@
   <!-- ################################ -->
 
   	<arg name="camera_name" default="camera" />
-  	<arg name="video_stream_provider" default="0" />
+  	<arg name="video_stream_provider" default="4" />
     <arg name="visualize" default="false"/>
-    <arg name="camera_number"/>
+    <arg name="camera_number" default="0"/>
 
    	<!-- images will be published at /camera_name/image with the image transports plugins (e.g.: compressed) installed -->
    	<group ns="$(arg camera_name)">
