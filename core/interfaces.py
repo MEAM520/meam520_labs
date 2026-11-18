@@ -91,7 +91,7 @@ class ObjectDetector:
 
 		# Transform from camera to end-effector
 		if rospy.search_param('/use_sim_time'):
-			self.H_ee_camera = np.array([[0, 0, 1, 0.04243],[0, -1, 0, 0], [1, 0, 0, -0.083], [0, 0, 0, 1]])
+			self.H_ee_camera = np.array([[0, -1, 0, 0.04243],[1, 0, 0, 0], [0, 0, 1, -0.083], [0, 0, 0, 1]])
 		else:
 
 			if self.team == 'red':
