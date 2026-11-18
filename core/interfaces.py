@@ -91,7 +91,7 @@ class ObjectDetector:
 
 		# Transform from camera to end-effector
 		if rospy.search_param('/use_sim_time'):
-			self.H_ee_camera = np.array([[0, -1, 0, 5e-2],[1, 0, 0, 0], [0, 0, 1, -6e-2], [0, 0, 0, 1]])
+			self.H_ee_camera = np.array([[0, 0, 1, 0.04243],[0, -1, 0, 0], [1, 0, 0, -0.083], [0, 0, 0, 1]])
 		else:
 
 			if self.team == 'red':
@@ -254,15 +254,6 @@ class ObjectDetector:
 
 		output: 4x4 homogeneous transformation matrix
 		"""
-		try:
-			(trans,rot) = self.listener.lookupTransform('panda_EE', 'camera',rospy.Time(0))
-			self.H_ee_camera = R.from_quat(rot).as_matrix()
-			self.H_ee_camera = np.append(self.H_ee_camera, np.array(trans).reshape(3,1), axis=1)
-			self.H_ee_camera = np.append(self.H_ee_camera, np.array([0,0,0,1]).reshape(1,4), axis=0)
-		
-		except Exception as e:
-			print(e)
-			pass
 
 		return self.H_ee_camera.copy()
 	
